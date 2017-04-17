@@ -26,10 +26,13 @@ namespace WebDeployParametersToolkit
         public bool IncludeApplicationSettings { get; set; } = true;
 
         [Category("Parameters to Generate")]
+        [DisplayName("App Settings")]
+        [Description("Generate parameters for the settings found under the /configuration/appSettings node of the Web.Config")]
+        public bool IncludeAppSettings { get; set; } = true;
+
+        [Category("Parameters to Generate")]
         [DisplayName("Session State Settings")]
         [Description("Generate parameters for the settings found under the /configuration/system.web/sessionState node of the Web.Config")]
         public bool IncludeSessionStateSettings { get; set; } = true;
-
-
     }
 }

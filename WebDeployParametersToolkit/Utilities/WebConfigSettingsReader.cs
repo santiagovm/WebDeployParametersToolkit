@@ -14,6 +14,8 @@ namespace WebDeployParametersToolkit.Utilities
 
         public bool IncludeApplicationSettings { get; set; } = true;
 
+        public bool IncludeAppSettings { get; set; } = true;
+
         public bool IncludeCompilationDebug { get; set; } = true;
 
         public bool IncludeMailSettings { get; set; } = true;
@@ -35,7 +37,11 @@ namespace WebDeployParametersToolkit.Utilities
                 {
                     results.AddRange(ReadApplicationSettings(document));
                 }
-                if (IncludeApplicationSettings)
+                if (IncludeAppSettings)
+                {
+                    results.AddRange(ReadAppSettings(document));
+                }
+                if (IncludeCompilationDebug)
                 {
                     results.Add(new WebConfigSetting() { Name = "CompilationDebug", NodePath = "/configuration/system.web/compilation/@debug" });
                 }
@@ -93,6 +99,50 @@ namespace WebDeployParametersToolkit.Utilities
                     } while (nav.MoveToNext());
                 }
             }
+            return results;
+        }
+
+        private static IEnumerable<WebConfigSetting> ReadAppSettings(XmlNode xmlNode)
+        {
+            var results = new List<WebConfigSetting>();
+
+            const string BASE_PATH = "/configuration/appSettings";
+
+            var settingsNode = xmlNode.SelectSingleNode(BASE_PATH);
+
+            if (settingsNode == null)
+            {
+                return results;
+            }
+
+            var nav = settingsNode.CreateNavigator();
+
+            if (!nav.MoveToFirstChild())
+            {
+                return results;
+            }
+
+            do
+            {
+                var keyName = $"{nav.GetAttribute(localName: "key", namespaceURI: string.Empty)}";
+
+                var settingName = $"appSettings/{keyName}";
+                var settingPath = $"{BASE_PATH}/{nav.Name}[@key='{keyName}']/@value";
+
+                if (results.Exists(s => s.Name == settingName))
+                {
+                    continue;
+                }
+
+                var setting = new WebConfigSetting
+                {
+                    NodePath = settingPath,
+                    Name = settingName
+                };
+
+                results.Add(setting);
+            } while (nav.MoveToNext());
+
             return results;
         }
     }
